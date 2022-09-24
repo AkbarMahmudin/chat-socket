@@ -1,6 +1,14 @@
 <%- include('../public/base.html') %>
   <h1 class="title-chat">CHAT ROOM</h1>
-  <div class="box-chat">
+
+  <!-- START: Register -->
+  <form class="form-join" id="form-join">
+    <input type="text" placeholder="Username">
+    <button type="submit">Join</button>
+  </form>
+  <!-- END: Register -->
+
+  <div class="box-chat" id="box-chat">
     <div class="message-container" id="message-container">
     </div>
 
@@ -17,9 +25,44 @@
     const messageContainer = document.getElementById('message-container');
     const btnSend = document.getElementById('btn-send');
     const message = document.getElementById('message');
-    const username = prompt('Masukkan username: ');
+    const boxChat = document.getElementById('box-chat');
+    const formJoin = document.getElementById('form-join');
+    let username;
     
+    const checkUser = () => {
+      const user = localStorage.getItem('user');
+      if (!user) {
+        return false;
+      }
+      username = JSON.parse(user).username;
+      return true;
+    }
 
+    document.addEventListener('DOMContentLoaded', () => {
+      const isJoined = checkUser();
+      if (isJoined) {
+        boxChat.style.display = 'flex';
+        formJoin.style.display = 'none';
+      } else {
+        boxChat.style.display = 'none';
+        formJoin.style.display = 'flex';
+      }
+    });
+
+    // Join to chat room
+    const joinHandler = (e) => {
+      e.preventDefault();
+      const user = e.target[0].value;
+      if (user) {
+        username = user;
+        boxChat.style.display = 'flex';
+        formJoin.style.display = 'none';
+        
+        localStorage.setItem('user', JSON.stringify({ username: user }));
+      }
+    }
+
+    // Send user message
     const sendHandler = (e) => {
       e.preventDefault();
       if (message.value) {
@@ -41,6 +84,8 @@
       }
     }
 
+    // Listener
+    formJoin.addEventListener('submit', joinHandler);
     message.addEventListener('keypress', (e)=>{
       if(e.key === 'Enter') {
         sendHandler(e);
@@ -48,6 +93,7 @@
     });
     btnSend.addEventListener('click', sendHandler);
 
+    // Get message
     socket.on('message', (id, message) => {
       const broadcast = document.createElement('div');
       const user = document.createElement('p');
