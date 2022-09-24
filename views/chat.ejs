@@ -1,23 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %></title>
-  <link rel='stylesheet' href='/stylesheets/style.css' />
-</head>
-<body>
-
-  <h1>CHAT ROOM</h1>
+<%- include('../public/base.html') %>
+  <h1 class="title-chat">CHAT ROOM</h1>
   <div class="box-chat">
     <div class="message-container" id="message-container">
-
     </div>
 
     <div class="form-message">
-      <input type="text" placeholder="Masukkan pesan" id="message">
-      <button type="button" id="btn-send">📤</button>
+      <input type="text" placeholder="Masukkan pesan" id="message" type="text">
+      <button type="button" id="btn-send">Send</button>
     </div>
   </div>
 
@@ -28,6 +17,8 @@
     const messageContainer = document.getElementById('message-container');
     const btnSend = document.getElementById('btn-send');
     const message = document.getElementById('message');
+    const username = prompt('Masukkan username: ');
+    
 
     const sendHandler = (e) => {
       e.preventDefault();
@@ -35,35 +26,39 @@
         const div = document.createElement('div');
         const newMessage = document.createElement('p');
         newMessage.textContent = message.value;
-
         const data = {
           id: socket.id,
-          message: message.value,
+          message: {
+            username: username,
+            text: message.value,
+          },
         };
         socket.emit('message', data);
-
         div.appendChild(newMessage);
+        div.classList.add('message-sender');
         messageContainer.appendChild(div);
         message.value = '';
       }
     }
 
+    message.addEventListener('keypress', (e)=>{
+      if(e.key === 'Enter') {
+        sendHandler(e);
+      }
+    });
     btnSend.addEventListener('click', sendHandler);
 
     socket.on('message', (id, message) => {
       const broadcast = document.createElement('div');
-      broadcast.style.justifyContent = 'left';
-      const username = document.createElement('span');
-      username.textContent = id;
-      const br = document.createElement('br');
+      const user = document.createElement('p');
       const newMessage = document.createElement('p');
-      newMessage.textContent = message;
-
-      broadcast.appendChild(username);
-      broadcast.appendChild(br);
+      broadcast.classList.add('message-receiver');
+      user.textContent = message.username;
+      user.classList.add('username');
+      newMessage.textContent = message.text;
+      broadcast.appendChild(user);
       broadcast.appendChild(newMessage);
       messageContainer.appendChild(broadcast);
     });
   </script>
-</body>
-</html>
+
